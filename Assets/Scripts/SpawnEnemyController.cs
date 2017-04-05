@@ -6,10 +6,11 @@ using UnityEngine;
 public class SpawnEnemyController : MonoBehaviour {
 
 	public GameObject enemy;
+	public float waitTime;
 
 	// Use this for initialization
 	void Start () {
-		StartCoroutine (SpawnEnemy (3f));
+		StartCoroutine (SpawnEnemy(waitTime));
 	}
 
 	// Update is called once per frame
@@ -18,6 +19,8 @@ public class SpawnEnemyController : MonoBehaviour {
 	}
 
 	IEnumerator SpawnEnemy(float waitTime) {
+		// Start spawn
+		yield return new WaitForSeconds(waitTime);
 		while (true) {
 			// Random spawn enemy at random position
 			Vector2 position = new Vector2(Random.Range(-10.0f, 10.0f), Random.Range(-10.0f, 10.0f));

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class EnemyController : MonoBehaviour {
-	
+
 	// How fast enemy move to the player
 	public float moveSpeed;
 
