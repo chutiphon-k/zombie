@@ -5,46 +5,107 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour {
 
-	public float movementSpeed = 1.0f;
+  public float attackAnimationTime;
+	public float movementSpeed;
 
-	private float[] movement = new float[2];
+	private Vector2 movement;
+	private string facingDirection;
 
 	private Rigidbody2D rb2d;
+	public WeaponController weaponController;
+	private Coroutine attackTask = null;
 
-	// For testing purpose
-	private SpriteRenderer sp;
-	
-	
-	// Use this for initialization
-	void Start () {
-		rb2d = GetComponent<Rigidbody2D>();
+	void Awake () {
+		/* Variables initialize */
+			rb2d = GetComponent<Rigidbody2D>();
+			facingDirection = "right";
 
-		// For testing purpose
- 		sp = GetComponent<SpriteRenderer>();
-		sp.color = Color.green;
+		_InitColor();
 	}
 
-	// Update is called once per frame
 	void Update () {
-		movement[0] = Input.GetAxis("Horizontal");
-		movement[1] = Input.GetAxis("Vertical");
-
-		Debug.Log("Movement : " + movement[0].ToString() + ' ' + movement[1].ToString());
-
-		rb2d.velocity = new Vector2(movement[0], movement[1]) * movementSpeed;	
+		movement = GetInput2D();
+		SetDirectionFrom(movement);
+		GetAttack(KeyCode.Space);
 	}
 
-	/// <summary>
-	/// Sent when an incoming collider makes contact with this object's
-	/// collider (2D physics only).
-	/// </summary>
-	/// <param name="other">The Collision2D data associated with this collision.</param>
-	void OnCollisionStay2D(Collision2D other) {
-			// Debug.Log(other.gameObject.name);
-			if(Input.GetKeyDown(KeyCode.Space)) {
-				Debug.Log("Attack!");
-				sp.color = Color.red;
-			} else sp.color = Color.green;
+	void FixedUpdate() {
+		rb2d.velocity = movement * movementSpeed;
 	}
+
+	/* ***** PUBLIC FUNCITONS ***** */
+		public string GetDirection() {
+			return facingDirection;
+		}
+	/* **************************** */
+
+	/* ***** PRIVATE FUNCTIONS ***** */
+		Vector2 GetInput2D() {
+			return new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
+		}
+
+		void SetDirectionFrom(Vector2 vec) {
+			Vector2 newDirection = Vector2.zero;
+			string directionStr = "";
+
+			if(vec.Equals(Vector2.zero)) return;
+
+			if(vec.x > 0.0f) newDirection.x = Mathf.Ceil(vec.x);
+			else if(vec.x < 0.0f) newDirection.x = Mathf.Floor(vec.x);
+
+			if(vec.y > 0.0f) newDirection.y = Mathf.Ceil(vec.y);
+			else if(vec.y < 0.0f) newDirection.y = Mathf.Floor(vec.y);
+
+			if(newDirection.y > 0) directionStr = "up";
+			else if(newDirection.y < 0) directionStr = "down";
+
+			if(newDirection.x < 0) directionStr = "left";
+			else if(newDirection.x > 0) directionStr = "right";
+			
+			facingDirection = directionStr;
+			// _DebugDirection();
+		}
+
+		void GetAttack(KeyCode attackButton) {
+			if(Input.GetKey(attackButton)) {
+				if(!weaponController.GetAttackState()) {
+					attackTask = StartCoroutine(weaponController.AttackingManager(attackAnimationTime));
+				}
+			}
+			else {
+				weaponController.SetAttackState(false);
+				if(attackTask != null) StopCoroutine(attackTask);
+				_AttackIdle();
+			}
+		}
+	/* ***************************** */
+
+	/* ***** TESTING / DEBUGGING ***** */
+		Color startColor;
+
+		void _InitColor() {
+			startColor = weaponController.GetComponentInChildren<SpriteRenderer>().color;
+		}
+
+		void _DebugMovement() {
+			Debug.Log("Movement : " + movement.x.ToString() + ' ' + movement.y.ToString());
+		}
+
+		void _DebugDirection() {
+			Debug.Log("facingDirection : " + facingDirection);
+		}
+
+		public void _Attacking() {
+				weaponController.GetComponentInChildren<SpriteRenderer>().color = Color.red;
+		}
+
+		public void _AttackWait() {
+				weaponController.GetComponentInChildren<SpriteRenderer>().color = Color.green;
+		}
+		
+		public void _AttackIdle() {
+			weaponController.gameObject.GetComponentInChildren<SpriteRenderer>().color = Color.blue;
+		}
+	/* ******************************* */
 
 }

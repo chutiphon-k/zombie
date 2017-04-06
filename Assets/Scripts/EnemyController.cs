@@ -10,12 +10,13 @@ public class EnemyController : MonoBehaviour {
 
 	private GameObject player;
 
-	// Use this for initialization
-	void Start () {
+	void Awake () {
+		// Variables initialize
+			moveSpeed = 0.05f;
+			
 		player = GameObject.Find("Player");
 	}
 	
-	// Update is called once per frame
 	void Update () {
 		// Continuously move towards player
 		transform.position = Vector2.MoveTowards(transform.position, player.transform.position, moveSpeed);
