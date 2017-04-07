@@ -1,111 +1,140 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿// using System.Collections;
+// using System.Collections.Generic;
 
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour {
 
+  public class UnitTest {
+
+    public static Color idle = Color.cyan;
+    public static Color waitAttackDelay = Color.green;
+    public static Color attack = Color.red;
+    static SpriteRenderer sprite = GameObject.Find("Sprite").GetComponentInChildren<SpriteRenderer>();
+
+    public static void SpriteState(Color stateColor) { 
+      sprite.color = stateColor;
+    }
+
+    public static void CheckForMovement(Vector2 movement) {
+      Debug.Log("movement : " + movement.x.ToString() + ' ' + movement.y.ToString()); 
+    }
+
+    public static void CheckForFacingDirection(Vector2 direction) {
+      Debug.Log("facingDirection : " + direction);
+    }
+
+  }
+
+  public class PlayerFacing {
+
+    private Vector2 facingDirection;
+    
+    public PlayerFacing(Vector2 direction) {
+      facingDirection = direction;
+    }
+
+    public Vector2 Get() {
+      return facingDirection;
+    }
+
+    public void Set(Vector2 vec) {
+
+      Vector2 newDirection = Vector2.zero;
+
+      if(vec.Equals(Vector2.zero)) return;
+
+      if(vec.x > 0.0f) newDirection.x = Mathf.Ceil(vec.x);
+      else if(vec.x < 0.0f) newDirection.x = Mathf.Floor(vec.x);
+
+      if(vec.y > 0.0f) newDirection.y = Mathf.Ceil(vec.y);
+      else if(vec.y < 0.0f) newDirection.y = Mathf.Floor(vec.y);
+
+      facingDirection = newDirection;
+
+    }
+
+    public int GetCWFormat() {
+      if(facingDirection == Vector2.up) return 0;
+      else if(facingDirection == Vector2.up + Vector2.right) return 1;
+      else if(facingDirection == Vector2.right) return 2;
+      else if(facingDirection == Vector2.down + Vector2.right) return 3;
+      else if(facingDirection == Vector2.down) return 4;
+      else if(facingDirection == Vector2.down + Vector2.left) return 5;
+      else if(facingDirection == Vector2.left) return 6;
+      else if(facingDirection == Vector2.up + Vector2.left) return 7;
+      return -1;
+    }
+
+  }
+
   public float attackAnimationTime;
-	public float movementSpeed;
+  public float movementSpeed;
+  public Vector2 playerColliderSize;
+  public BoxCollider2D[] hitboxColliders; // ** WARNING : Please lay in CW order ** //
+  public PlayerFacing playerFacing = new PlayerFacing(Vector2.right);
 
-	private Vector2 movement;
-	private string facingDirection;
+  private bool isLocking = false;
+  private float startAttackTime = 0.0f;
+  private Vector2 movement;
+  private Rigidbody2D rb2d;
 
-	private Rigidbody2D rb2d;
-	public WeaponController weaponController;
-	private Coroutine attackTask = null;
+  void Awake () {
+    rb2d = GetComponent<Rigidbody2D>();
+    GetComponent<BoxCollider2D>().size = playerColliderSize;
+    for(int i = 0; i < hitboxColliders.Length; i++) {
+      // if(hitboxColliders[i])
+      hitboxColliders[i].gameObject.SetActive(false);
+    }
+  }
 
-	void Awake () {
-		/* Variables initialize */
-			rb2d = GetComponent<Rigidbody2D>();
-			facingDirection = "right";
+  void Update () {
+    movement = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
+    SetHitbox(movement);
+    DetectAttack(Input.GetKey(KeyCode.Space));
 
-		_InitColor();
-	}
+    // UnitTest.CheckForFacingDirection(playerFacing.Get());
+  }
 
-	void Update () {
-		movement = GetInput2D();
-		SetDirectionFrom(movement);
-		GetAttack(KeyCode.Space);
-	}
+  void FixedUpdate() {
+    rb2d.velocity = movement * movementSpeed;
+  }
 
-	void FixedUpdate() {
-		rb2d.velocity = movement * movementSpeed;
-	}
+  /* ************************************************************************************** */
+    void SetHitbox(Vector2 raw) {
+      int target;
+      playerFacing.Set(raw);
+      target = playerFacing.GetCWFormat();
+      hitboxColliders[target].gameObject.SetActive(true);
+      for(int i = 0; i < hitboxColliders.Length; i++) {
+        if(i != target) hitboxColliders[i].gameObject.SetActive(false);
+      }
+    }
 
-	/* ***** PUBLIC FUNCITONS ***** */
-		public string GetDirection() {
-			return facingDirection;
-		}
-	/* **************************** */
+    void DetectAttack(bool isAttacking) {
+      if(isAttacking) {
 
-	/* ***** PRIVATE FUNCTIONS ***** */
-		Vector2 GetInput2D() {
-			return new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
-		}
+        UnitTest.SpriteState(UnitTest.waitAttackDelay);
 
-		void SetDirectionFrom(Vector2 vec) {
-			Vector2 newDirection = Vector2.zero;
-			string directionStr = "";
+        if(!isLocking) {
+          isLocking = true;
+          startAttackTime = Time.timeSinceLevelLoad;
+        }
+        else if(Time.timeSinceLevelLoad >= (startAttackTime + attackAnimationTime)) {
+          isLocking = false;
 
-			if(vec.Equals(Vector2.zero)) return;
+          UnitTest.SpriteState(UnitTest.attack);
 
-			if(vec.x > 0.0f) newDirection.x = Mathf.Ceil(vec.x);
-			else if(vec.x < 0.0f) newDirection.x = Mathf.Floor(vec.x);
+          // Debug.Log("Attack!");
+          hitboxColliders[playerFacing.GetCWFormat()].SendMessage("Hit");
+        }
+      }
+      else {
+        startAttackTime = Time.timeSinceLevelLoad;
 
-			if(vec.y > 0.0f) newDirection.y = Mathf.Ceil(vec.y);
-			else if(vec.y < 0.0f) newDirection.y = Mathf.Floor(vec.y);
-
-			if(newDirection.y > 0) directionStr = "up";
-			else if(newDirection.y < 0) directionStr = "down";
-
-			if(newDirection.x < 0) directionStr = "left";
-			else if(newDirection.x > 0) directionStr = "right";
-			
-			facingDirection = directionStr;
-			// _DebugDirection();
-		}
-
-		void GetAttack(KeyCode attackButton) {
-			if(Input.GetKey(attackButton)) {
-				if(!weaponController.GetAttackState()) {
-					attackTask = StartCoroutine(weaponController.AttackingManager(attackAnimationTime));
-				}
-			}
-			else {
-				weaponController.SetAttackState(false);
-				if(attackTask != null) StopCoroutine(attackTask);
-				_AttackIdle();
-			}
-		}
-	/* ***************************** */
-
-	/* ***** TESTING / DEBUGGING ***** */
-		Color startColor;
-
-		void _InitColor() {
-			startColor = weaponController.GetComponentInChildren<SpriteRenderer>().color;
-		}
-
-		void _DebugMovement() {
-			Debug.Log("Movement : " + movement.x.ToString() + ' ' + movement.y.ToString());
-		}
-
-		void _DebugDirection() {
-			Debug.Log("facingDirection : " + facingDirection);
-		}
-
-		public void _Attacking() {
-				weaponController.GetComponentInChildren<SpriteRenderer>().color = Color.red;
-		}
-
-		public void _AttackWait() {
-				weaponController.GetComponentInChildren<SpriteRenderer>().color = Color.green;
-		}
-		
-		public void _AttackIdle() {
-			weaponController.gameObject.GetComponentInChildren<SpriteRenderer>().color = Color.blue;
-		}
-	/* ******************************* */
+        UnitTest.SpriteState(UnitTest.idle);
+      }
+    }
+  /* ************************************************************************************** */
 
 }
