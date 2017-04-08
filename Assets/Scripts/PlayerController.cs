@@ -12,12 +12,12 @@ public class PlayerController : MonoBehaviour {
     public static Color attack = Color.red;
     static SpriteRenderer sprite = GameObject.Find("Sprite").GetComponentInChildren<SpriteRenderer>();
 
-    public static void SpriteState(Color stateColor) { 
+    public static void SpriteState(Color stateColor) {
       sprite.color = stateColor;
     }
 
     public static void CheckForMovement(Vector2 movement) {
-      Debug.Log("movement : " + movement.x.ToString() + ' ' + movement.y.ToString()); 
+      Debug.Log("movement : " + movement.x.ToString() + ' ' + movement.y.ToString());
     }
 
     public static void CheckForFacingDirection(Vector2 direction) {
@@ -29,7 +29,7 @@ public class PlayerController : MonoBehaviour {
   public class PlayerFacing {
 
     private Vector2 facingDirection;
-    
+
     public PlayerFacing(Vector2 direction) {
       facingDirection = direction;
     }
@@ -83,7 +83,6 @@ public class PlayerController : MonoBehaviour {
     rb2d = GetComponent<Rigidbody2D>();
     GetComponent<BoxCollider2D>().size = playerColliderSize;
     for(int i = 0; i < hitboxColliders.Length; i++) {
-      // if(hitboxColliders[i])
       hitboxColliders[i].gameObject.SetActive(false);
     }
   }
