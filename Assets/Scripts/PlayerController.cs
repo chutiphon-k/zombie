@@ -89,6 +89,7 @@ public class PlayerController : MonoBehaviour {
 
   void Update () {
     movement = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
+    // Debug.Log(this.gameObject.transform.position);s
     SetHitbox(movement);
     DetectAttack(Input.GetKey(KeyCode.Space));
 

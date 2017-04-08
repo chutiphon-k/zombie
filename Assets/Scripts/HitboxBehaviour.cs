@@ -1,9 +1,12 @@
 ﻿// using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 
 using UnityEngine;
 
 public class HitboxBehaviour : MonoBehaviour {
+
+	private GameObject player;
 
 	public class UnitTest {
 
@@ -19,6 +22,11 @@ public class HitboxBehaviour : MonoBehaviour {
 	}
 
 	private List<GameObject> enemies = new List<GameObject>();
+
+
+	void Awake () {
+		player = GameObject.Find("Player");
+	}
 
 	void OnTriggerEnter2D(Collider2D other) {
 		if(other.tag == "Enemy" && !enemies.Contains(other.gameObject)) {
@@ -40,9 +48,28 @@ public class HitboxBehaviour : MonoBehaviour {
 		enemies.Clear();
 	}
 
-	void Hit() {
+	void Hit() {		
 		while(enemies.Count > 0) {
 			GameObject toKill = enemies[0];
+			Vector3 vectorPlayer = player.transform.position;
+			Vector3 vectorEnemy = enemies[0].transform.position;
+			Vector3 vectorKnockback = new Vector3();
+
+			if(vectorPlayer.x > vectorEnemy.x){
+				vectorKnockback.x = vectorEnemy.x - 1;
+			} else {
+				vectorKnockback.x = vectorEnemy.x + 1;
+			}
+
+			if(vectorPlayer.y > vectorEnemy.y){
+				vectorKnockback.y = vectorEnemy.y - 1;
+			} else {
+				vectorKnockback.y = vectorEnemy.y + 1;
+			}
+
+			vectorKnockback.z = 0;
+
+			enemies[0].transform.position = vectorKnockback;
 			enemies.RemoveAt(0);
 			Destroy(toKill);
 		}
