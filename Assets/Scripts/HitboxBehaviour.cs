@@ -6,6 +6,10 @@ using UnityEngine;
 
 public class HitboxBehaviour : MonoBehaviour {
 
+	public int damage = 10;
+	public int heal = 10;
+
+
 	private GameObject player;
 
 	public class UnitTest {
@@ -30,8 +34,9 @@ public class HitboxBehaviour : MonoBehaviour {
 
 	void OnTriggerEnter2D(Collider2D other) {
 		if(other.tag == "Enemy" && !enemies.Contains(other.gameObject)) {
-			enemies.Add(other.gameObject);
+			enemies.Add(other.gameObject);					
 		}
+		player.gameObject.GetComponent<PlayerController>().updateHP(damage);		
 	}
 
 	void OnTriggerExit2D(Collider2D other) {
@@ -49,6 +54,7 @@ public class HitboxBehaviour : MonoBehaviour {
 	}
 
 	void Hit() {		
+
 		while(enemies.Count > 0) {
 			GameObject toKill = enemies[0];
 			Vector3 vectorPlayer = player.transform.position;

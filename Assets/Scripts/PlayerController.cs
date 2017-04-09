@@ -4,6 +4,26 @@
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour {
+	public UIBarScript HPBar;
+	public int currentHP = 100;
+	public int maxHP = 100;
+
+	void Start(){
+		HPBar.UpdateValue(100, 100);
+	}
+
+  // public int getCurrentHP(){
+  //   return currentHP;
+  // }
+
+  public void updateHP(int value){
+    if(currentHP-value > 0){
+      currentHP -= value;
+    } else {
+      currentHP = 0;
+    }
+    HPBar.UpdateValue(currentHP, maxHP);
+  }
 
   public class UnitTest {
 
@@ -121,6 +141,7 @@ public class PlayerController : MonoBehaviour {
           startAttackTime = Time.timeSinceLevelLoad;
         }
         else if(Time.timeSinceLevelLoad >= (startAttackTime + attackAnimationTime)) {
+          
           isLocking = false;
 
           UnitTest.SpriteState(UnitTest.attack);

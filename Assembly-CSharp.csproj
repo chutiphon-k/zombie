@@ -46,6 +46,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Resources\UIBars\Scripts\ControlBar.cs" />
+     <Compile Include="Assets\Resources\UIBars\Scripts\CriteriaRule.cs" />
+     <Compile Include="Assets\Resources\UIBars\Scripts\UIBarScript.cs" />
+     <Compile Include="Assets\Resources\UIBars\Scripts\UpdateAnimationRule.cs" />
      <Compile Include="Assets\Scripts\EnemyController.cs" />
      <Compile Include="Assets\Scripts\HitboxBehaviour.cs" />
      <Compile Include="Assets\Scripts\PlayerController.cs" />
