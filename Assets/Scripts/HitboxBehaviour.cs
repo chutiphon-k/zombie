@@ -54,7 +54,7 @@ public class HitboxBehaviour : MonoBehaviour {
 	}
 
 	void Hit() {		
-
+		player.gameObject.GetComponent<PlayerController>().updateScore(enemies.Count);
 		while(enemies.Count > 0) {
 			GameObject toKill = enemies[0];
 			Vector3 vectorPlayer = player.transform.position;

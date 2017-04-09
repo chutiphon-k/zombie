@@ -2,19 +2,36 @@
 // using System.Collections.Generic;
 
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour {
 	public UIBarScript HPBar;
 	public int currentHP = 100;
 	public int maxHP = 100;
+  public int score = 0;
+  private GameObject uiScore;
 
 	void Start(){
 		HPBar.UpdateValue(100, 100);
+    uiScore = GameObject.Find("Score");
+    uiScore.GetComponent<Text>().text = "000";
 	}
 
-  // public int getCurrentHP(){
-  //   return currentHP;
-  // }
+  string scoreIntToString(){
+    string strScore = score.ToString();
+    string tmp = "";
+
+    for(int i = strScore.Length; i<3; i++){
+      tmp += "0";
+    }
+    return tmp + score;  
+  }
+
+  public void updateScore(int value){
+    score += value;
+    uiScore.GetComponent<Text>().text = scoreIntToString();
+  }
 
   public void updateHP(int value){
     if(currentHP-value > 0){
@@ -23,6 +40,10 @@ public class PlayerController : MonoBehaviour {
       currentHP = 0;
     }
     HPBar.UpdateValue(currentHP, maxHP);
+    if(currentHP <= 0){
+      SceneManager.LoadScene ("GameOver");
+      PlayerPrefs.SetString ("score", scoreIntToString());
+    }
   }
 
   public class UnitTest {
