@@ -9,13 +9,28 @@ public class Enemy : Character {
 
   private bool isWaiting = false;
   private float startAttackTime = 0.0f;
+	bool facingRight;
 
 /* Unity's API ************************************************************* */
 
   protected override void Update() {
     base.Update();
     SeekForAttack();
-  }
+
+		if (player.transform.position.x - transform.position.x < 0 && !facingRight) {
+			Flip ();
+		} 
+		else if (player.transform.position.x - transform.position.x > 0 && facingRight) {
+			Flip ();
+		}
+	}
+	void Flip (){
+		facingRight = !facingRight;
+		Vector3 theScale = transform.localScale;
+		theScale.x *= -1;
+		transform.localScale = theScale;
+
+	}
 
   protected override void Awake () {
     base.Awake();

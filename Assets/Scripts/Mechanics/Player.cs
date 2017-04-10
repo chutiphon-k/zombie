@@ -13,10 +13,15 @@ public class Player : Character {
   private bool isWaiting = false;
   private float startAttackTime = 0.0f;
 
+	private Animator animator; 
+	bool facingRight;
+	public AudioClip swordHit;
+
 /* Unity's API ************************************************************* */
 
   protected override void Update () {
     base.Update(); 
+	animator.SetBool ("attack", Input.GetKey(KeyCode.Space));
     DetectAttack(Input.GetKey(KeyCode.Space));
   }
 
@@ -24,6 +29,7 @@ public class Player : Character {
     HPBar.UpdateValue(stats.HP, stats.MAXHP);
     uiScore = GameObject.Find("Score");
     uiScore.GetComponent<Text>().text = "000";
+	animator = GetComponent<Animator>();
   }
 
   void OnDisable() { 
@@ -36,8 +42,29 @@ public class Player : Character {
 /* Private Functions ******************************************************* */
 
   protected override Vector2 GetMovement() {
-    return new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
+	animator.SetFloat ("move", Mathf.Abs (Input.GetAxis("Horizontal"))+Mathf.Abs (Input.GetAxis("Vertical")));
+		if (Input.GetAxis("Horizontal") < 0 && !facingRight) {
+			Flip ();
+		} 
+		else if (Input.GetAxis("Horizontal") > 0 && facingRight) {
+			Flip ();
+		}
+	return new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
   }
+
+	void Flip (){
+		facingRight = !facingRight;
+		Vector3 theScale = transform.localScale;
+		theScale.x *= -1;
+		transform.localScale = theScale;
+
+	}
+	void playSwordHitSound() {
+
+		this.gameObject.GetComponent<AudioSource> ().clip = swordHit;
+		this.gameObject.GetComponent<AudioSource> ().Play ();
+
+	}
 
   protected override void Hit() {
     while(opponents.Count > 0) {
