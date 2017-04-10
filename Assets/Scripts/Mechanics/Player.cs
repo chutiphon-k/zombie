@@ -41,39 +41,31 @@ public class Player : Character {
 
   protected override void Hit() {
     while(opponents.Count > 0) {
-      GameObject target = opponents[0];
 
-			Vector3 vectorPlayer = transform.position;
-			Vector3 vectorEnemy = opponents[0].transform.position;
-			Vector3 vectorKnockback = new Vector3();
+      if(opponents[0] != null) {
+        GameObject target = opponents[0];
+        Vector2 unitDirection = (target.transform.position - transform.position).normalized;
+        target.SendMessage("Knockback", unitDirection * 150);
+        target.SendMessage("TakeDamage", stats.ATK);
+      }
 
-			if(vectorPlayer.x > vectorEnemy.x) {
-				vectorKnockback.x = vectorEnemy.x - 1;
-			}
-      else {
-				vectorKnockback.x = vectorEnemy.x + 1;
-			}
-
-			if(vectorPlayer.y > vectorEnemy.y) {
-				vectorKnockback.y = vectorEnemy.y - 1;
-			}
-      else {
-				vectorKnockback.y = vectorEnemy.y + 1;
-			}
-
-			vectorKnockback.z = 0;
-
-			opponents[0].transform.position = vectorKnockback;
-
-      target.SendMessage("TakeDamage", stats.ATK);
-      opponents.Remove(target);
+      opponents.RemoveAt(0);
     }
   }
+
+  protected override void TakeDamage(int receivedDamage) {
+    updateHP(receivedDamage);
+    // stats.HP -= receivedDamage; 
+    // if(stats.HP <= 0) {
+    //   gameObject.SetActive(false);
+    // }
+    base.TakeDamage(receivedDamage);
+  } 
 
   void DetectAttack(bool isAttacking) {
     if(isAttacking) {
 
-      debugger.SpriteState(Color.green);
+      _test.SpriteState(Color.green);
 
       if(!isWaiting) {
         isWaiting = true;
@@ -82,7 +74,7 @@ public class Player : Character {
       else if(Time.timeSinceLevelLoad >= startAttackTime + (1.0f / stats.ATKSPD)) {
         isWaiting = false;
 
-        debugger.SpriteState(Color.red);
+        _test.SpriteState(Color.red);
 
         Hit();
       }
@@ -90,7 +82,7 @@ public class Player : Character {
     else {
       startAttackTime = Time.timeSinceLevelLoad;
 
-      debugger.SpriteState(Color.cyan);
+      _test.SpriteState(Color.cyan);
     }
   }
 

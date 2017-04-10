@@ -54,7 +54,9 @@
      <Compile Include="Assets\Scripts\Mechanics\Character.cs" />
      <Compile Include="Assets\Scripts\Mechanics\CharacterStats.cs" />
      <Compile Include="Assets\Scripts\Mechanics\Enemy.cs" />
+     <Compile Include="Assets\Scripts\Mechanics\EnemyHitBox.cs" />
      <Compile Include="Assets\Scripts\Mechanics\HitBoxController.cs" />
+     <Compile Include="Assets\Scripts\Mechanics\JustForDebugging.cs" />
      <Compile Include="Assets\Scripts\Mechanics\Player.cs" />
      <Compile Include="Assets\Scripts\Mechanics\PlayerHitBox.cs" />
      <Compile Include="Assets\Scripts\Mechanics\SpawnEnemyController.cs" />

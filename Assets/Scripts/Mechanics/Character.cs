@@ -4,28 +4,6 @@ using UnityEngine;
 
 public abstract class Character : MonoBehaviour {
 
-  public class UnitDebugger {
-
-    public SpriteRenderer sprite;
-
-    public UnitDebugger(GameObject gameObject) {
-      sprite = gameObject.transform.Find("Sprite").GetComponentInChildren<SpriteRenderer>();
-    }
-
-    public void SpriteState(Color stateColor) {
-      sprite.color = stateColor;
-    } 
-
-    public void CheckForMovement(Vector2 movement) {
-      Debug.Log("movement : " + movement.x.ToString() + ' ' + movement.y.ToString());
-    }
-
-    public void CheckForFacingDirection(Vector2 direction) {
-      Debug.Log("facingDirection : " + direction);
-    }
-
-  }
-
   private class Facing {
 
     private Vector2 facingDirection;
@@ -70,21 +48,24 @@ public abstract class Character : MonoBehaviour {
 
   }
 
-  public UnitDebugger debugger;
+  public JustForDebugging _test;
 
-  public static List<GameObject> opponents = new List<GameObject>();
   public CharacterStats stats = new CharacterStats(); 
 
+  protected List<GameObject> opponents = new List<GameObject>();
   protected Rigidbody2D rb2d;
   protected Vector2 movement;
 
   private HitBoxController hitBox;
   private Facing facing;
 
+  private bool wasPushed = false;
+  private Vector2 knockbackForce = Vector2.zero;
+
 /* Unity's API ************************************************************* */
 
   protected virtual void Awake() {
-    debugger = new UnitDebugger(gameObject);
+    _test = new JustForDebugging(gameObject);
 
     rb2d = GetComponent<Rigidbody2D>();
     facing = new Facing(Vector2.right);
@@ -98,6 +79,7 @@ public abstract class Character : MonoBehaviour {
 
   protected virtual void FixedUpdate() {
     rb2d.velocity = movement * stats.MVSPD; 
+    OnKnockback();
   }
 
 /* ************************************************************************* */
@@ -113,11 +95,30 @@ public abstract class Character : MonoBehaviour {
     if(stats.HP <= 0) {
       gameObject.SetActive(false);
     }
-  } 
+  }
+
+  private void Knockback(Vector2 force) {
+    knockbackForce = force;
+    wasPushed = true;
+  }
+
+  private void OnKnockback() {
+    if(!wasPushed) return;
+    rb2d.AddForce(knockbackForce, ForceMode2D.Impulse);
+    wasPushed = false;
+  }
 
   private void SetHitbox(Vector2 raw) {
     facing.Set(raw);
     hitBox.SendMessage("TurnOn", facing.GetCWFormat());
+  }
+
+/* ************************************************************************* */
+
+/* Public Functions ******************************************************** */
+
+  public List<GameObject> GetOpponents() {
+    return opponents;
   }
 
 /* ************************************************************************* */
