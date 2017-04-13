@@ -1,5 +1,4 @@
-﻿/* Cleaned */
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -10,14 +9,10 @@ public class Player : Character {
 
   private GameObject uiScore;
 
-  private bool isWaiting = false;
-  private float startAttackTime = 0.0f;
-
 /* Unity's API ************************************************************* */
 
   protected override void Update () {
     base.Update(); 
-    DetectAttack(Input.GetKey(KeyCode.Space));
   }
 
   void Start() {
@@ -39,55 +34,17 @@ public class Player : Character {
     return new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
   }
 
-  protected override void Hit() {
-    while(opponents.Count > 0) {
-
-      if(opponents[0] != null) {
-        GameObject target = opponents[0];
-        Vector2 unitDirection = (target.transform.position - transform.position).normalized;
-        target.SendMessage("Knockback", unitDirection * 150);
-        target.SendMessage("TakeDamage", stats.ATK);
-        opponents.Remove(target);
-      }
-      else opponents.RemoveAt(0);
-
-    }
+  protected override bool GetAttack() {
+    return Input.GetKey(KeyCode.Space);
   }
 
-  protected override void TakeDamage(int receivedDamage) {
-    updateHP(receivedDamage);
-    // stats.HP -= receivedDamage; 
-    // if(stats.HP <= 0) {
-    //   gameObject.SetActive(false);
-    // }
-    base.TakeDamage(receivedDamage);
-  } 
-
-  void DetectAttack(bool isAttacking) {
-    if(isAttacking) {
-
-      _test.SpriteState(Color.green);
-
-      if(!isWaiting) {
-        isWaiting = true;
-        startAttackTime = Time.timeSinceLevelLoad;
-      }
-      else if(Time.timeSinceLevelLoad >= startAttackTime + (1.0f / stats.ATKSPD)) {
-        isWaiting = false;
-
-        _test.SpriteState(Color.red);
-
-        Hit();
-      }
-    }
-    else {
-      startAttackTime = Time.timeSinceLevelLoad;
-
-      _test.SpriteState(Color.cyan);
-    }
+  protected override void Hit(GameObject target) {
+    Vector2 unitDirection = (target.transform.position - transform.position).normalized;
+    target.GetComponent<Enemy>().Knockback(unitDirection * 150);
+    target.GetComponent<Enemy>().TakeDamage(stats.ATK);
   }
 
-  string scoreIntToString() {
+  private string scoreIntToString() {
     string strScore = score.ToString();
     string tmp = "";
 
@@ -101,12 +58,19 @@ public class Player : Character {
 
 /* Public Functions ******************************************************** */
 
-  public void updateScore(int value) {
+  public override void TakeDamage(int receivedDamage) {
+    UI_UpdateHP(receivedDamage);
+    base.TakeDamage(receivedDamage);
+  } 
+
+  public void UI_UpdateScore(int value) {
+    if(gameObject == null) return;
     score += value;
     uiScore.GetComponent<Text>().text = scoreIntToString();
   }
 
-  public void updateHP(int value) {
+  public void UI_UpdateHP(int value) {
+    if(gameObject == null) return;
     if(stats.HP - value > 0) {
       stats.HP -= value;
     }
