@@ -1,5 +1,4 @@
-﻿/* Cleaned */
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Enemy : Character {
 
@@ -7,14 +6,10 @@ public class Enemy : Character {
 
   private GameObject player;
 
-  private bool isWaiting = false;
-  private float startAttackTime = 0.0f;
-
 /* Unity's API ************************************************************* */
 
   protected override void Update() {
     base.Update();
-    SeekForAttack();
   }
 
   protected override void Awake () {
@@ -23,8 +18,8 @@ public class Enemy : Character {
   }
 
   void OnDisable() {
-    if(player.activeSelf)
-      player.GetComponent<Player>().updateScore(1);
+    if(player != null)
+      player.GetComponent<Player>().UI_UpdateScore(1);
     Destroy(gameObject); 
   }
 
@@ -38,40 +33,12 @@ public class Enemy : Character {
     return unitDirection;
   }
 
-  protected override void Hit() { 
-    while(opponents.Count > 0) {
-
-      if(opponents[0] != null) {
-        GameObject target = opponents[0];
-        target.SendMessage("TakeDamage", stats.ATK);
-      }
-      else opponents.RemoveAt(0);
-
-    }
+  protected override bool GetAttack() {
+    return opponents.Contains(player);
   }
 
-  private void SeekForAttack() {
-    if(opponents.Contains(player)) {
-
-      _test.SpriteState(Color.green);
-
-      if(!isWaiting) {
-        isWaiting = true;
-        startAttackTime = Time.timeSinceLevelLoad;
-      }
-      else if(Time.timeSinceLevelLoad >= startAttackTime + (1.0f / stats.ATKSPD)) {
-        isWaiting = false;
-
-        _test.SpriteState(Color.red);
-
-        Hit();
-      }
-    }
-    else {
-      startAttackTime = Time.timeSinceLevelLoad;
-
-      _test.SpriteState(Color.yellow);
-    } 
+  protected override void Hit(GameObject target) { 
+    target.SendMessage("TakeDamage", stats.ATK);
   }
 
 /* ************************************************************************* */

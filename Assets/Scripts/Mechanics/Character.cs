@@ -1,80 +1,42 @@
-/* Cleaned */
 using System.Collections.Generic;
+
 using UnityEngine;
 
 public abstract class Character : MonoBehaviour {
 
-  private class Facing {
+  protected JustForDebugging _test; 
 
-    private Vector2 facingDirection;
-
-    public Facing(Vector2 direction) {
-      facingDirection = direction;
-    }
-
-    public Vector2 Get() {
-      return facingDirection;
-    }
-
-    public void Set(Vector2 vec) {
-
-      Vector2 newDirection = Vector2.zero;
-
-      if(vec.x > 0.1f) newDirection.x = 1.0f;
-      else if(vec.x < -0.1f) newDirection.x = -1.0f;
-      else newDirection.x = 0.0f;
-
-      if(vec.y > 0.1f) newDirection.y = 1.0f;
-      else if(vec.y < -0.1f) newDirection.y = -1.0f;
-      else newDirection.y = 0.0f;
-
-      if(newDirection.Equals(Vector2.zero)) return;
-
-      facingDirection = newDirection;
-
-    }
-
-    public int GetCWFormat() {
-      if(facingDirection == Vector2.up) return 0;
-      else if(facingDirection == Vector2.up + Vector2.right) return 1;
-      else if(facingDirection == Vector2.right) return 2;
-      else if(facingDirection == Vector2.down + Vector2.right) return 3;
-      else if(facingDirection == Vector2.down) return 4;
-      else if(facingDirection == Vector2.down + Vector2.left) return 5;
-      else if(facingDirection == Vector2.left) return 6;
-      else if(facingDirection == Vector2.up + Vector2.left) return 7;
-      return -1;
-    }
-
-  }
-
-  public JustForDebugging _test;
-
-  public CharacterStats stats = new CharacterStats(); 
-
+  [SerializeField] protected CharacterStats stats = new CharacterStats(); 
   protected List<GameObject> opponents = new List<GameObject>();
-  protected Rigidbody2D rb2d;
-  protected Vector2 movement;
 
+  private Rigidbody2D rb2d;
+  private Vector2 movement; 
   private HitBoxController hitBox;
   private Facing facing;
 
   private bool wasPushed = false;
-  private Vector2 knockbackForce = Vector2.zero;
+  private Vector2 knockbackForce = Vector2.zero; 
+
+  private bool attack = false;
+  private bool isWaiting = false;
+  private float startAttackTime = 0.0f; 
 
 /* Unity's API ************************************************************* */
 
   protected virtual void Awake() {
     _test = new JustForDebugging(gameObject);
 
-    rb2d = GetComponent<Rigidbody2D>();
-    facing = new Facing(Vector2.right);
+    rb2d = GetComponent<Rigidbody2D>(); 
     hitBox = transform.Find("HitBoxes").GetComponent<HitBoxController>();
+    facing = new Facing(Vector2.right);
   }
 
   protected virtual void Update() {
     movement = GetMovement();
+    attack = GetAttack();
+
     SetHitbox(movement);
+    OnAttack();
   }
 
   protected virtual void FixedUpdate() {
@@ -88,19 +50,9 @@ public abstract class Character : MonoBehaviour {
 
   protected abstract Vector2 GetMovement();
 
-  protected abstract void Hit(); 
+  protected abstract void Hit(GameObject target);
 
-  protected virtual void TakeDamage(int receivedDamage) {
-    stats.HP -= receivedDamage; 
-    if(stats.HP <= 0) {
-      gameObject.SetActive(false);
-    }
-  }
-
-  private void Knockback(Vector2 force) {
-    knockbackForce = force;
-    wasPushed = true;
-  }
+  protected abstract bool GetAttack(); 
 
   private void OnKnockback() {
     if(!wasPushed) return;
@@ -108,18 +60,67 @@ public abstract class Character : MonoBehaviour {
     wasPushed = false;
   }
 
+  private void OnAttack() { 
+    if(attack) {
+
+      _test.SpriteState(Color.green);
+
+      if(!isWaiting) {
+        isWaiting = true;
+        startAttackTime = Time.timeSinceLevelLoad;
+      }
+      else if(Time.timeSinceLevelLoad >= startAttackTime + (1.0f / stats.ATKSPD)) {
+        isWaiting = false;
+
+        _test.SpriteState(Color.red);
+
+        // Attack all opponents
+        while(opponents.Count > 0) { 
+          if(opponents[0] != null) {
+            GameObject target = opponents[0];
+
+            Hit(target);
+
+            opponents.Remove(target);
+          }
+          else opponents.RemoveAt(0); 
+        } 
+
+      } 
+
+    }
+    else {
+      startAttackTime = Time.timeSinceLevelLoad;
+
+      _test.SpriteState(Color.cyan);
+    }
+
+  }
+
   private void SetHitbox(Vector2 raw) {
     facing.Set(raw);
-    hitBox.SendMessage("TurnOn", facing.GetCWFormat());
+    hitBox.TurnOn(facing.GetCWFormat());
   }
 
 /* ************************************************************************* */
 
 /* Public Functions ******************************************************** */
 
-  public List<GameObject> GetOpponents() {
-    return opponents;
+  public virtual void TakeDamage(int receivedDamage) {
+    stats.HP -= receivedDamage; 
+    if(stats.HP <= 0) {
+      gameObject.SetActive(false);
+    }
+  } 
+
+  public void Knockback(Vector2 force) {
+    knockbackForce = force;
+    wasPushed = true;
   }
+
+  public List<GameObject> GetOpponents() { 
+    return opponents;
+  } 
 
 /* ************************************************************************* */
 
