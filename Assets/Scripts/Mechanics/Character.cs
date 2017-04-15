@@ -50,9 +50,9 @@ public abstract class Character : MonoBehaviour {
 
   protected abstract Vector2 GetMovement();
 
-  protected abstract void Hit(GameObject target);
-
   protected abstract bool GetAttack(); 
+
+  protected abstract void Hit(GameObject target);
 
   private void OnKnockback() {
     if(!wasPushed) return;
