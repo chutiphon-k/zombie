@@ -59,8 +59,13 @@ public class Player : Character {
 /* Public Functions ******************************************************** */
 
   public override void TakeDamage(int receivedDamage) {
-    UI_UpdateHP(receivedDamage);
-    base.TakeDamage(receivedDamage);
+    stats.HP -= receivedDamage; 
+    if(stats.HP <= 0) {
+      stats.HP = 0;
+      UI_UpdateHP(receivedDamage);
+      gameObject.SetActive(false);
+    }
+    else UI_UpdateHP(receivedDamage);
   } 
 
   public void UI_UpdateScore(int value) {
@@ -71,12 +76,6 @@ public class Player : Character {
 
   public void UI_UpdateHP(int value) {
     if(gameObject == null) return;
-    if(stats.HP - value > 0) {
-      stats.HP -= value;
-    }
-    else {
-      stats.HP = 0;
-    }
     HPBar.UpdateValue(stats.HP, stats.MAXHP);
   }
 

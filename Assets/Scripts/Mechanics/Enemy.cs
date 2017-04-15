@@ -38,7 +38,7 @@ public class Enemy : Character {
   }
 
   protected override void Hit(GameObject target) { 
-    target.SendMessage("TakeDamage", stats.ATK);
+    target.GetComponent<Player>().TakeDamage(stats.ATK);
   }
 
 /* ************************************************************************* */

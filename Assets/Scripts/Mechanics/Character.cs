@@ -7,7 +7,7 @@ public abstract class Character : MonoBehaviour {
   protected JustForDebugging _test; 
 
   [SerializeField] protected CharacterStats stats = new CharacterStats(); 
-  protected List<GameObject> opponents = new List<GameObject>();
+  [SerializeField] protected List<GameObject> opponents = new List<GameObject>();
 
   private Rigidbody2D rb2d;
   private Vector2 movement; 
@@ -109,6 +109,7 @@ public abstract class Character : MonoBehaviour {
   public virtual void TakeDamage(int receivedDamage) {
     stats.HP -= receivedDamage; 
     if(stats.HP <= 0) {
+      stats.HP = 0;
       gameObject.SetActive(false);
     }
   } 
