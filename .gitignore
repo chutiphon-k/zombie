@@ -4,6 +4,9 @@
 Assets/Plugins
 Assets/Plugins.meta
 
+Assets/src/
+Assets/src.meta
+
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
