@@ -28,6 +28,7 @@ public class NetworkManager : MonoBehaviour {
 		socket.On("player_jump", onPlayerJump);
 		socket.On("player_health", onPlayerHealth);
 		socket.On("enmies", onEnemies);
+		socket.On("enemy_move", onEnemyMove);
 		StartCoroutine(ConnectToServer());		
 	}
 	
@@ -107,6 +108,15 @@ public class NetworkManager : MonoBehaviour {
 
 	}
 
+	void onEnemyMove(SocketIOEvent socketIOEvent){
+		string data = socketIOEvent.data.ToString();
+		UserJSON userJSON = UserJSON.CreateFromJSON(data);
+		Vector3 position = new Vector3(userJSON.position[0], userJSON.position[1], userJSON.position[2]);
+		// if(userJSON.name == playerNameInput.text) return;
+		GameObject e = GameObject.Find(userJSON.name) as GameObject;
+		if(e != null) e.transform.position = position;
+	}
+
 	// 
 
 	IEnumerator ConnectToServer(){
@@ -119,9 +129,9 @@ public class NetworkManager : MonoBehaviour {
 		// string playerName = playerNameInput.text;
 		string playerName = "eieiza" + UnityEngine.Random.Range(0f, 10f);
 		List<SpawnPoint> playerSpawnPoints = GetComponent<PlayerSpawner>().playerSpawnPoints;
-		// List<SpawnPoint> enemySpawnPoints = GetComponent<EnemySpawner>().enemySpawnPoints;
+		List<SpawnPoint> enemySpawnPoints = GetComponent<EnemySpawner>().enemySpawnPoints;
 		// PlayerJSON playerJSON = new PlayerJSON(playerName, playerSpawnPoints, enemySpawnPoints);
-		PlayerJSON playerJSON = new PlayerJSON(playerName, playerSpawnPoints);
+		PlayerJSON playerJSON = new PlayerJSON(playerName, playerSpawnPoints, enemySpawnPoints);
 		string data = JsonUtility.ToJson(playerJSON);
 		socket.Emit("play", new JSONObject(data));
 		// canvas.gameObject.SetActive(false);
@@ -130,6 +140,11 @@ public class NetworkManager : MonoBehaviour {
 	public void CommandMove(Vector3 vec3){
 		string data = JsonUtility.ToJson(new PositionJSON(vec3));
 		socket.Emit("player_move", new JSONObject(data));
+	}
+
+	public void CommandEnemyMove(Vector3 vec3){
+		string data = JsonUtility.ToJson(new PositionJSON(vec3));
+		socket.Emit("enemy_move", new JSONObject(data));
 	}
 
 	// public void CommandShoot(){
@@ -160,21 +175,20 @@ public class NetworkManager : MonoBehaviour {
 	public class PlayerJSON {
 		public string name;
 		public List<PointJSON> playerSpawnPoints;
-		// public List<PointJSON> enemySpawnPoints;
+		public List<PointJSON> enemySpawnPoints;
 
-		// public PlayerJSON(string _name, List<SpawnPoint> _playerSpawnPoints, List<SpawnPoint> _enemySpawnPoints){
-		public PlayerJSON(string _name, List<SpawnPoint> _playerSpawnPoints){
+		public PlayerJSON(string _name, List<SpawnPoint> _playerSpawnPoints, List<SpawnPoint> _enemySpawnPoints){
 			playerSpawnPoints = new List<PointJSON>();
-			// enemySpawnPoints = new List<PointJSON>();
+			enemySpawnPoints = new List<PointJSON>();
 			name = _name;
 			foreach(SpawnPoint playerSpawnPoint in _playerSpawnPoints){
 				PointJSON pointJSON = new PointJSON(playerSpawnPoint);
 				playerSpawnPoints.Add(pointJSON);
 			}
-			// foreach(SpawnPoint enemySpawnPoint in _enemySpawnPoints){
-			// 	PointJSON pointJSON = new PointJSON(enemySpawnPoint);
-			// 	enemySpawnPoints.Add(pointJSON);
-			// }
+			foreach(SpawnPoint enemySpawnPoint in _enemySpawnPoints){
+				PointJSON pointJSON = new PointJSON(enemySpawnPoint);
+				enemySpawnPoints.Add(pointJSON);
+			}
 		}
 	}
 

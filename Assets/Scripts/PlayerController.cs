@@ -10,15 +10,11 @@ public class PlayerController : MonoBehaviour {
 
 	Vector3 oldPosition;
 	Vector3 currentPosition;
-	Quaternion oldRotation;
-	Quaternion currentRotation;
 
 	// Use this for initialization
 	void Start () {
 		oldPosition = transform.position;
 		currentPosition = oldPosition;
-		oldRotation = transform.rotation;
-		currentRotation = oldRotation;
 	}
 	
 	// Update is called once per frame
@@ -29,8 +25,8 @@ public class PlayerController : MonoBehaviour {
 		transform.Translate(x, 0, 0);
 		currentPosition = transform.position;
 
-		if( currentPosition != oldPosition){
-			NetworkManager.instance.GetComponent<NetworkManager>().CommandMove(transform.position);
+		if(currentPosition != oldPosition){
+			NetworkManager.instance.GetComponent<NetworkManager>().CommandEnemyMove(transform.position);
 			oldPosition = currentPosition;
 		}
 
