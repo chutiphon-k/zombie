@@ -28,5 +28,15 @@ public class PlayerController : MonoBehaviour {
 		var x = Input.GetAxis("Horizontal") * Time.deltaTime * 3.0f;
 		transform.Translate(x, 0, 0);
 		currentPosition = transform.position;
+
+		if( currentPosition != oldPosition){
+			NetworkManager.instance.GetComponent<NetworkManager>().CommandMove(transform.position);
+			oldPosition = currentPosition;
+		}
+
+		// if(Input.GetKeyDown(KeyCode.Space)){
+			// NetworkManager n = NetworkManager.instance.GetComponent<NetworkManager>();
+			// n.CommandShoot();
+		// }
 	}
 }

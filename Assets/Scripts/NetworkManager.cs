@@ -76,7 +76,12 @@ public class NetworkManager : MonoBehaviour {
 	}
 
 	void onPlayerMove(SocketIOEvent socketIOEvent){
-
+		string data = socketIOEvent.data.ToString();
+		UserJSON userJSON = UserJSON.CreateFromJSON(data);
+		Vector3 position = new Vector3(userJSON.position[0], userJSON.position[1], userJSON.position[2]);
+		// if(userJSON.name == playerNameInput.text) return;
+		GameObject p = GameObject.Find(userJSON.name) as GameObject;
+		if(p != null) p.transform.position = position;
 	}
 
 	void onPlayerShoot(SocketIOEvent socketIOEvent){
@@ -119,10 +124,21 @@ public class NetworkManager : MonoBehaviour {
 		// canvas.gameObject.SetActive(false);
 	}
 
-	// Update is called once per frame
-	void Update () {
-		
+	public void CommandMove(Vector3 vec3){
+		string data = JsonUtility.ToJson(new PositionJSON(vec3));
+		socket.Emit("player_move", new JSONObject(data));
 	}
+
+	// public void CommandShoot(){
+	// 	print("Shoot");
+	// 	socket.Emit("player shoot");
+	// }
+
+	// public void CommandHealthChange(GameObject playerFrom, GameObject playerTo, int healthChange, bool isEnemy){
+	// 	print("health change cmd");
+	// 	HealthChangeJSON healthChangeJSON = new HealthChangeJSON(playerTo.name, healthChange, playerFrom.name, isEnemy);
+	// 	socket.Emit("health", new JSONObject(JsonUtility.ToJson(healthChangeJSON)));
+	// }
 
 	[Serializable]
 	public class PointJSON {
@@ -172,12 +188,10 @@ public class NetworkManager : MonoBehaviour {
 
 	[Serializable]
 	public class PositionJSON {
-		public string name;
 		public float[] position;
-		public int health;
 
-		public static UserJSON CreateFromJSON(string data){
-			return JsonUtility.FromJson<UserJSON>(data);
+		public PositionJSON(Vector3 _position){
+			position = new float[] { _position.x, _position.y, _position.z };
 		}
 	}
 
