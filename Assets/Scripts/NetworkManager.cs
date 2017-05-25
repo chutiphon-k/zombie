@@ -20,7 +20,6 @@ public class NetworkManager : MonoBehaviour {
 
 	void Start () {	
 		socket.On("play", onPlay);
-		socket.On("player_connect", onPlayerConnected);
 		socket.On("other_player_connected", onOtherPlayerConnected);
 		socket.On("other_player_disconnected", onOtherPlayerDisconnected);
 		socket.On("player_move", onPlayerMove);
@@ -35,15 +34,26 @@ public class NetworkManager : MonoBehaviour {
 	// Socket
 
 	void onPlay(SocketIOEvent socketIOEvent){
-
-	}
-
-	void onPlayerConnected(SocketIOEvent socketIOEvent){
-
+		print("you joined");
+		string data = socketIOEvent.data.ToString();
+		UserJSON currentUserJSON = UserJSON.CreateFromJSON(data);
+		Vector3 position = new Vector3(currentUserJSON.position[0], currentUserJSON.position[1], currentUserJSON.position[2]);
+		// Quaternion rotation = Quaternion.Euler(currentUserJSON.rotation[0], currentUserJSON.rotation[1], currentUserJSON.rotation[2]);
+		GameObject p = Instantiate(player, position, Quaternion.identity) as GameObject;
+		PlayerController pc = p.GetComponent<PlayerController>();
+		// Transform t = p.transform.Find("Healthbar Canvas");
+		// Transform t1 = t.transform.Find("Player Name");
+		// Text playerName = t1.GetComponent<Text>();
+		// playerName.text = currentUserJSON.name;
+		pc.isLocalPlayer = true;
+		p.name = currentUserJSON.name;
 	}
 
 	void onOtherPlayerConnected(SocketIOEvent socketIOEvent){
-
+		print("someone joined");
+		string data = socketIOEvent.data.ToString();
+		UserJSON userJSON = UserJSON.CreateFromJSON(data);
+		print(userJSON.position.ToString());
 	}
 
 	void onOtherPlayerDisconnected(SocketIOEvent socketIOEvent){
@@ -63,7 +73,7 @@ public class NetworkManager : MonoBehaviour {
 	}
 
 	void onPlayerJump(SocketIOEvent socketIOEvent){
-		
+
 	}
 
 	void onPlayerHealth(SocketIOEvent socketIOEvent){
@@ -82,11 +92,56 @@ public class NetworkManager : MonoBehaviour {
 		socket.Emit("player_connect");
 
 		yield return new WaitForSeconds(1f);
+
+		// string playerName = playerNameInput.text;
+		string playerName = "eieiza555";
+		List<SpawnPoint> playerSpawnPoints = GetComponent<PlayerSpawner>().playerSpawnPoints;
+		// List<SpawnPoint> enemySpawnPoints = GetComponent<EnemySpawner>().enemySpawnPoints;
+		// PlayerJSON playerJSON = new PlayerJSON(playerName, playerSpawnPoints, enemySpawnPoints);
+		PlayerJSON playerJSON = new PlayerJSON(playerName, playerSpawnPoints);
+		string data = JsonUtility.ToJson(playerJSON);
+		socket.Emit("play", new JSONObject(data));
+		// canvas.gameObject.SetActive(false);
 	}
 
 	// Update is called once per frame
 	void Update () {
 		
+	}
+
+	[Serializable]
+	public class PointJSON {
+		public float[] position;
+
+		public PointJSON(SpawnPoint spawnPoint){
+			position = new float[] {
+				spawnPoint.transform.position.x,
+				spawnPoint.transform.position.y,
+				spawnPoint.transform.position.z
+			};
+		}
+	}
+
+	[Serializable]
+	public class PlayerJSON {
+		public string name;
+		public List<PointJSON> playerSpawnPoints;
+		// public List<PointJSON> enemySpawnPoints;
+
+		// public PlayerJSON(string _name, List<SpawnPoint> _playerSpawnPoints, List<SpawnPoint> _enemySpawnPoints){
+		public PlayerJSON(string _name, List<SpawnPoint> _playerSpawnPoints){
+			playerSpawnPoints = new List<PointJSON>();
+			// enemySpawnPoints = new List<PointJSON>();
+			name = _name;
+			foreach(SpawnPoint playerSpawnPoint in _playerSpawnPoints){
+				PointJSON pointJSON = new PointJSON(playerSpawnPoint);
+				playerSpawnPoints.Add(pointJSON);
+			}
+			// foreach(SpawnPoint enemySpawnPoint in _enemySpawnPoints){
+			// 	PointJSON pointJSON = new PointJSON(enemySpawnPoint);
+			// 	enemySpawnPoints.Add(pointJSON);
+			// }
+		}
 	}
 
 	[Serializable]
