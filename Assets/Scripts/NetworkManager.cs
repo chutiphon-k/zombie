@@ -72,7 +72,10 @@ public class NetworkManager : MonoBehaviour {
 	}
 
 	void onOtherPlayerDisconnected(SocketIOEvent socketIOEvent){
-
+		print("player disconnected");
+		string data = socketIOEvent.data.ToString();
+		UserJSON userJSON = UserJSON.CreateFromJSON(data);
+		Destroy(GameObject.Find(userJSON.name));
 	}
 
 	void onPlayerMove(SocketIOEvent socketIOEvent){
