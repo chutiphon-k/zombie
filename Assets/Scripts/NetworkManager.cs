@@ -37,6 +37,7 @@ public class NetworkManager : MonoBehaviour {
 		print("you joined");
 		string data = socketIOEvent.data.ToString();
 		UserJSON currentUserJSON = UserJSON.CreateFromJSON(data);
+		print(currentUserJSON.name);
 		Vector3 position = new Vector3(currentUserJSON.position[0], currentUserJSON.position[1], currentUserJSON.position[2]);
 		// Quaternion rotation = Quaternion.Euler(currentUserJSON.rotation[0], currentUserJSON.rotation[1], currentUserJSON.rotation[2]);
 		GameObject p = Instantiate(player, position, Quaternion.identity) as GameObject;
@@ -53,7 +54,21 @@ public class NetworkManager : MonoBehaviour {
 		print("someone joined");
 		string data = socketIOEvent.data.ToString();
 		UserJSON userJSON = UserJSON.CreateFromJSON(data);
-		print(userJSON.position.ToString());
+		Vector3 position = new Vector3(userJSON.position[0], userJSON.position[1], userJSON.position[2]);
+		// Quaternion rotation = Quaternion.Euler(userJSON.rotation[0], userJSON.rotation[1], userJSON.rotation[2]);
+		GameObject o = GameObject.Find(userJSON.name) as GameObject;
+		if(o != null) return ;
+		GameObject p = Instantiate(player, position, Quaternion.identity) as GameObject;
+		PlayerController pc = p.GetComponent<PlayerController>();
+		// Transform t = p.transform.Find("Healthbar Canvas");
+		// Transform t1 = t.transform.Find("Player Name");
+		// Text playerName = t1.GetComponent<Text>();
+		// playerName.text = userJSON.name;
+		pc.isLocalPlayer = false;
+		p.name = userJSON.name;
+		// Health h = p.GetComponent<Health>();
+		// h.currentHealth = userJSON.health;
+		// h.OnChangeHealth();
 	}
 
 	void onOtherPlayerDisconnected(SocketIOEvent socketIOEvent){
@@ -94,7 +109,7 @@ public class NetworkManager : MonoBehaviour {
 		yield return new WaitForSeconds(1f);
 
 		// string playerName = playerNameInput.text;
-		string playerName = "eieiza555";
+		string playerName = "eieiza" + UnityEngine.Random.Range(0f, 10f);
 		List<SpawnPoint> playerSpawnPoints = GetComponent<PlayerSpawner>().playerSpawnPoints;
 		// List<SpawnPoint> enemySpawnPoints = GetComponent<EnemySpawner>().enemySpawnPoints;
 		// PlayerJSON playerJSON = new PlayerJSON(playerName, playerSpawnPoints, enemySpawnPoints);
