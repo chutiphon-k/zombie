@@ -27,7 +27,7 @@ public class NetworkManager : MonoBehaviour {
 		socket.On("player_bomb", onPlayerBomb);
 		socket.On("player_jump", onPlayerJump);
 		socket.On("player_health", onPlayerHealth);
-		socket.On("enmies", onEnemies);
+		socket.On("enemies", onEnemies);
 		socket.On("enemy_move", onEnemyMove);
 		StartCoroutine(ConnectToServer());		
 	}
@@ -105,7 +105,10 @@ public class NetworkManager : MonoBehaviour {
 	}
 
 	void onEnemies(SocketIOEvent socketIOEvent){
-
+		print("enemy");
+		EnemiesJSON enemiesJSON = EnemiesJSON.CreateFromJSON(socketIOEvent.data.ToString());
+		EnemySpawner es = GetComponent<EnemySpawner>();
+		es.SpawnEnemies(enemiesJSON);
 	}
 
 	void onEnemyMove(SocketIOEvent socketIOEvent){
@@ -191,6 +194,15 @@ public class NetworkManager : MonoBehaviour {
 			}
 		}
 	}
+
+	[Serializable]
+	public class EnemiesJSON {
+		public List<UserJSON> enemies;
+
+		public static EnemiesJSON CreateFromJSON(string data){
+			return JsonUtility.FromJson<EnemiesJSON>(data);
+		}
+	}	
 
 	[Serializable]
 	public class UserJSON {
