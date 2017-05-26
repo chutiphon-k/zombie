@@ -18,9 +18,8 @@ public class EnemyController : MonoBehaviour {
 		transform.position = Vector3.MoveTowards(transform.position, cantonment.transform.position, step);
 
 		currentPosition = transform.position;
-
 		if(currentPosition != oldPosition){
-			NetworkManager.instance.GetComponent<NetworkManager>().CommandEnemyMove(transform.position);
+			NetworkManager.instance.GetComponent<NetworkManager>().CommandEnemyMove(this.name, transform.position);
 			oldPosition = currentPosition;
 		}
 	}

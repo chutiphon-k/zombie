@@ -145,8 +145,12 @@ public class NetworkManager : MonoBehaviour {
 		socket.Emit("player_move", new JSONObject(data));
 	}
 
-	public void CommandEnemyMove(Vector3 vec3){
-		string data = JsonUtility.ToJson(new PositionJSON(vec3));
+	public void CommandEnemyMove(string name, Vector3 vec3){
+		UserJSON userJSON = new UserJSON();
+		userJSON.position = new PositionJSON(vec3).position;
+		userJSON.name = name;
+		string data = JsonUtility.ToJson(userJSON);
+		// print(data);
 		socket.Emit("enemy_move", new JSONObject(data));
 	}
 

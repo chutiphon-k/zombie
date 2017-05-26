@@ -26,7 +26,7 @@ public class PlayerController : MonoBehaviour {
 		currentPosition = transform.position;
 
 		if(currentPosition != oldPosition){
-			NetworkManager.instance.GetComponent<NetworkManager>().CommandEnemyMove(transform.position);
+			NetworkManager.instance.GetComponent<NetworkManager>().CommandMove(transform.position);
 			oldPosition = currentPosition;
 		}
 
