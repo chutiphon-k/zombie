@@ -25,7 +25,7 @@ public class NetworkManager : MonoBehaviour {
 		socket.On("player_move", onPlayerMove);
 		socket.On("player_shoot", onPlayerShoot);
 		socket.On("player_bomb", onPlayerBomb);
-		socket.On("player_jump", onPlayerJump);
+		socket.On("player_action", onPlayerAction);
 		socket.On("player_health", onPlayerHealth);
 		socket.On("enemies", onEnemies);
 		socket.On("enemy_move", onEnemyMove);
@@ -96,8 +96,22 @@ public class NetworkManager : MonoBehaviour {
 
 	}
 
-	void onPlayerJump(SocketIOEvent socketIOEvent){
-
+	void onPlayerAction(SocketIOEvent socketIOEvent){
+		string data = socketIOEvent.data.ToString();
+		ActionJSON actionJSON = ActionJSON.CreateFromJSON(data);
+		GameObject p = GameObject.Find(actionJSON.name);
+		PlayerController pc = p.GetComponent<PlayerController>();
+		switch(actionJSON.type){
+			case "jump":
+				pc.CmdJump();
+			break;
+			case "attack":
+				pc.CmdAttack();
+			break;
+			case "bomb":
+				pc.CmdBomb();
+			break;
+		}
 	}
 
 	void onPlayerHealth(SocketIOEvent socketIOEvent){
@@ -154,10 +168,13 @@ public class NetworkManager : MonoBehaviour {
 		socket.Emit("enemy_move", new JSONObject(data));
 	}
 
-	// public void CommandShoot(){
-	// 	print("Shoot");
-	// 	socket.Emit("player shoot");
-	// }
+	public void CommandAction(string type){
+		// print("jump");
+		ActionJSON actionJSON = new ActionJSON();
+		actionJSON.type = type;
+		string data = JsonUtility.ToJson(actionJSON);
+		socket.Emit("player_action", new JSONObject(data));
+	}
 
 	// public void CommandHealthChange(GameObject playerFrom, GameObject playerTo, int healthChange, bool isEnemy){
 	// 	print("health change cmd");
@@ -229,10 +246,11 @@ public class NetworkManager : MonoBehaviour {
 	}
 
 	[Serializable]
-	public class ShootJSON {
+	public class ActionJSON {
 		public string name;
-		public static ShootJSON CreateFromJSON(string data) {
-			return JsonUtility.FromJson<ShootJSON>(data);
+		public string type;
+		public static ActionJSON CreateFromJSON(string data) {
+			return JsonUtility.FromJson<ActionJSON>(data);
 		}
 	}	
 }

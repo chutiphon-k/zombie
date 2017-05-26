@@ -7,14 +7,15 @@ public class PlayerController : MonoBehaviour {
 	// public GameObject bulletPrefab;
 	// public Transform bulletSpawn;
 	public bool isLocalPlayer = false;
-
+	public Material[] color;
 	Vector3 oldPosition;
 	Vector3 currentPosition;
+	private Renderer rend;
 
-	// Use this for initialization
 	void Start () {
 		oldPosition = transform.position;
 		currentPosition = oldPosition;
+		rend = GetComponent<Renderer>();
 	}
 	
 	// Update is called once per frame
@@ -29,10 +30,25 @@ public class PlayerController : MonoBehaviour {
 			NetworkManager.instance.GetComponent<NetworkManager>().CommandMove(transform.position);
 			oldPosition = currentPosition;
 		}
+		NetworkManager n = NetworkManager.instance.GetComponent<NetworkManager>();
+		if(Input.GetKeyDown(KeyCode.Space)){
+			n.CommandAction("jump");
+		} else if(Input.GetKeyDown(KeyCode.A)){
+			n.CommandAction("attack");
+		} else if(Input.GetKeyDown(KeyCode.S)){
+			n.CommandAction("bomb");
+		}
+	}
 
-		// if(Input.GetKeyDown(KeyCode.Space)){
-			// NetworkManager n = NetworkManager.instance.GetComponent<NetworkManager>();
-			// n.CommandShoot();
-		// }
+	public void CmdJump(){
+		rend.sharedMaterial = color[1];		
+	}
+
+	public void CmdAttack(){
+		rend.sharedMaterial = color[2];		
+	}
+
+	public void CmdBomb(){
+		rend.sharedMaterial = color[3];		
 	}
 }
