@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using SocketIO;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class NetworkManager : MonoBehaviour {
 
@@ -10,6 +11,9 @@ public class NetworkManager : MonoBehaviour {
 	public SocketIOComponent socket;
 	public GameObject player;
 
+	public Canvas canvas;
+	public InputField teamName;
+	private bool isConnected = false;
 	void Awake(){
 		if(instance == null)
 			instance = this;
@@ -28,10 +32,21 @@ public class NetworkManager : MonoBehaviour {
 		socket.On("player_action", onPlayerAction);
 		socket.On("player_health", onPlayerHealth);
 		socket.On("enemies", onEnemies);
-		socket.On("enemy_move", onEnemyMove);
-		StartCoroutine(ConnectToServer());		
+		socket.On("enemy_move", onEnemyMove);	
+		StartCoroutine(ConnectToServer());			
 	}
 	
+	public void JoinGame(){
+		string playerName = "Player" + UnityEngine.Random.Range(0f, 10f);
+		List<SpawnPoint> playerSpawnPoints = GetComponent<PlayerSpawner>().playerSpawnPoints;
+		List<SpawnPoint> enemySpawnPoints = GetComponent<EnemySpawner>().enemySpawnPoints;
+		PlayerJSON playerJSON = new PlayerJSON(playerName, teamName.text, playerSpawnPoints, enemySpawnPoints);
+		string data = JsonUtility.ToJson(playerJSON);
+		socket.Emit("play", new JSONObject(data));
+		canvas.gameObject.SetActive(false);
+		isConnected = true;
+	}
+
 	// Socket
 
 	void onPlay(SocketIOEvent socketIOEvent){
@@ -40,7 +55,6 @@ public class NetworkManager : MonoBehaviour {
 		UserJSON currentUserJSON = UserJSON.CreateFromJSON(data);
 		print(currentUserJSON.name);
 		Vector3 position = new Vector3(currentUserJSON.position[0], currentUserJSON.position[1], currentUserJSON.position[2]);
-		// Quaternion rotation = Quaternion.Euler(currentUserJSON.rotation[0], currentUserJSON.rotation[1], currentUserJSON.rotation[2]);
 		GameObject p = Instantiate(player, position, Quaternion.identity) as GameObject;
 		PlayerController pc = p.GetComponent<PlayerController>();
 		// Transform t = p.transform.Find("Healthbar Canvas");
@@ -53,6 +67,9 @@ public class NetworkManager : MonoBehaviour {
 
 	void onOtherPlayerConnected(SocketIOEvent socketIOEvent){
 		print("someone joined");
+		if(!isConnected) JoinGame();
+
+		canvas.gameObject.SetActive(false);		
 		string data = socketIOEvent.data.ToString();
 		UserJSON userJSON = UserJSON.CreateFromJSON(data);
 		Vector3 position = new Vector3(userJSON.position[0], userJSON.position[1], userJSON.position[2]);
@@ -144,14 +161,15 @@ public class NetworkManager : MonoBehaviour {
 		yield return new WaitForSeconds(1f);
 
 		// string playerName = playerNameInput.text;
-		string playerName = "eieiza" + UnityEngine.Random.Range(0f, 10f);
-		List<SpawnPoint> playerSpawnPoints = GetComponent<PlayerSpawner>().playerSpawnPoints;
-		List<SpawnPoint> enemySpawnPoints = GetComponent<EnemySpawner>().enemySpawnPoints;
+		// string playerName = "Player" + UnityEngine.Random.Range(0f, 10f);
+		// List<SpawnPoint> playerSpawnPoints = GetComponent<PlayerSpawner>().playerSpawnPoints;
+		// List<SpawnPoint> enemySpawnPoints = GetComponent<EnemySpawner>().enemySpawnPoints;
+		// // PlayerJSON playerJSON = new PlayerJSON(playerName, playerSpawnPoints, enemySpawnPoints);
 		// PlayerJSON playerJSON = new PlayerJSON(playerName, playerSpawnPoints, enemySpawnPoints);
-		PlayerJSON playerJSON = new PlayerJSON(playerName, playerSpawnPoints, enemySpawnPoints);
-		string data = JsonUtility.ToJson(playerJSON);
-		socket.Emit("play", new JSONObject(data));
+		// string data = JsonUtility.ToJson(playerJSON);
+		// socket.Emit("play", new JSONObject(data));
 		// canvas.gameObject.SetActive(false);
+		// isConnected = true;
 	}
 
 	public void CommandMove(Vector3 vec3){
@@ -176,11 +194,11 @@ public class NetworkManager : MonoBehaviour {
 		socket.Emit("player_action", new JSONObject(data));
 	}
 
-	// public void CommandHealthChange(GameObject playerFrom, GameObject playerTo, int healthChange, bool isEnemy){
-	// 	print("health change cmd");
-	// 	HealthChangeJSON healthChangeJSON = new HealthChangeJSON(playerTo.name, healthChange, playerFrom.name, isEnemy);
-	// 	socket.Emit("health", new JSONObject(JsonUtility.ToJson(healthChangeJSON)));
-	// }
+	public void CommandHealthChange(GameObject playerFrom, GameObject playerTo, int healthChange, bool isEnemy){
+		print("health change cmd");
+		HealthChangeJSON healthChangeJSON = new HealthChangeJSON(playerTo.name, healthChange, playerFrom.name, isEnemy);
+		socket.Emit("health", new JSONObject(JsonUtility.ToJson(healthChangeJSON)));
+	}
 
 	[Serializable]
 	public class PointJSON {
@@ -198,13 +216,15 @@ public class NetworkManager : MonoBehaviour {
 	[Serializable]
 	public class PlayerJSON {
 		public string name;
+		public string teamName;
 		public List<PointJSON> playerSpawnPoints;
 		public List<PointJSON> enemySpawnPoints;
 
-		public PlayerJSON(string _name, List<SpawnPoint> _playerSpawnPoints, List<SpawnPoint> _enemySpawnPoints){
+		public PlayerJSON(string _name, string _teamName, List<SpawnPoint> _playerSpawnPoints, List<SpawnPoint> _enemySpawnPoints){
 			playerSpawnPoints = new List<PointJSON>();
 			enemySpawnPoints = new List<PointJSON>();
 			name = _name;
+			teamName = _teamName;
 			foreach(SpawnPoint playerSpawnPoint in _playerSpawnPoints){
 				PointJSON pointJSON = new PointJSON(playerSpawnPoint);
 				playerSpawnPoints.Add(pointJSON);
@@ -252,5 +272,21 @@ public class NetworkManager : MonoBehaviour {
 		public static ActionJSON CreateFromJSON(string data) {
 			return JsonUtility.FromJson<ActionJSON>(data);
 		}
-	}	
+	}
+
+	[Serializable]
+	public class HealthChangeJSON {
+		public string name;
+		public int healthChange;
+		public string from ;
+		public bool isEnemy;
+
+		public HealthChangeJSON(string _name, int _healthChange, string _from, bool _isEnemy){
+			name = _name;
+			healthChange = _healthChange;
+			from = _from;
+			isEnemy = _isEnemy;
+		}
+	}
+
 }
