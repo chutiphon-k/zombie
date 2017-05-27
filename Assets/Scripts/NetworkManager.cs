@@ -27,12 +27,11 @@ public class NetworkManager : MonoBehaviour {
 		socket.On("other_player_connected", onOtherPlayerConnected);
 		socket.On("other_player_disconnected", onOtherPlayerDisconnected);
 		socket.On("player_move", onPlayerMove);
-		socket.On("player_shoot", onPlayerShoot);
-		socket.On("player_bomb", onPlayerBomb);
 		socket.On("player_action", onPlayerAction);
 		socket.On("player_health", onPlayerHealth);
 		socket.On("enemies", onEnemies);
-		socket.On("enemy_move", onEnemyMove);	
+		socket.On("enemy_move", onEnemyMove);
+		socket.On("health", onHealth);
 		StartCoroutine(ConnectToServer());			
 	}
 	
@@ -43,6 +42,7 @@ public class NetworkManager : MonoBehaviour {
 		PlayerJSON playerJSON = new PlayerJSON(playerName, teamName.text, playerSpawnPoints, enemySpawnPoints);
 		string data = JsonUtility.ToJson(playerJSON);
 		socket.Emit("play", new JSONObject(data));
+		socket.Emit("wave");
 		canvas.gameObject.SetActive(false);
 		isConnected = true;
 	}
@@ -105,14 +105,6 @@ public class NetworkManager : MonoBehaviour {
 		if(p != null) p.transform.position = position;
 	}
 
-	void onPlayerShoot(SocketIOEvent socketIOEvent){
-
-	}
-
-	void onPlayerBomb(SocketIOEvent socketIOEvent){
-
-	}
-
 	void onPlayerAction(SocketIOEvent socketIOEvent){
 		string data = socketIOEvent.data.ToString();
 		ActionJSON actionJSON = ActionJSON.CreateFromJSON(data);
@@ -149,6 +141,16 @@ public class NetworkManager : MonoBehaviour {
 		// if(userJSON.name == playerNameInput.text) return;
 		GameObject e = GameObject.Find(userJSON.name) as GameObject;
 		if(e != null) e.transform.position = position;
+	}
+
+	void onHealth(SocketIOEvent socketIOEvent){
+		print("changing the health");
+		string data = socketIOEvent.data.ToString();
+		UserHealthJSON userHealthJSON = UserHealthJSON.CreateFromJSON(data);
+		GameObject p = GameObject.Find(userHealthJSON.name);
+		Health h = p.GetComponent<Health>();
+		h.currentHealth = userHealthJSON.health;
+		h.OnChangeHealth();
 	}
 
 	// 
@@ -200,6 +202,8 @@ public class NetworkManager : MonoBehaviour {
 		socket.Emit("health", new JSONObject(JsonUtility.ToJson(healthChangeJSON)));
 	}
 
+
+
 	[Serializable]
 	public class PointJSON {
 		public float[] position;
@@ -235,6 +239,16 @@ public class NetworkManager : MonoBehaviour {
 			}
 		}
 	}
+
+	[Serializable]
+	public class UserHealthJSON {
+		public string name;
+		public int health;
+
+		public static UserHealthJSON CreateFromJSON(string data){
+			return JsonUtility.FromJson<UserHealthJSON>(data);			
+		}
+	}	
 
 	[Serializable]
 	public class EnemiesJSON {
