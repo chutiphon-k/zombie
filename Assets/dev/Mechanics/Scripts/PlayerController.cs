@@ -11,6 +11,10 @@ public class PlayerController : MonoBehaviour {
   bool grounded = true;
   int groundLayerHash;
 
+  // Communicators
+    public bool Fire { get {return fire;} } 
+    public float facingDirection { get {return currentFlip;} }
+
   // Inputs
     float horizontal;
     bool run;
