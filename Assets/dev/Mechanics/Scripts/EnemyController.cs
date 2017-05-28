@@ -50,7 +50,7 @@ public class EnemyController : MonoBehaviour {
     }
 
     void HorizontalMove() {
-      deltaX = target.transform.position.x - transform.position.x;
+      deltaX = target == null ? 0 : target.transform.position.x - transform.position.x;
       float direction = deltaX < 0.0f ? -1.0f : 1.0f;
 
       float oldXScale = rb2d.transform.localScale.x;
@@ -75,8 +75,9 @@ public class EnemyController : MonoBehaviour {
       if(attack != null) {
         if(Time.fixedTime > attackTime) {
           // TODO: Implement real hit
-          Collider2D hit = attack;
           Debug.Log("Hit");
+          Collider2D hit = attack;
+          hit.SendMessage("StatusUpdate");
 
           attackTime = Time.fixedTime + (1.0f / attackSpeed);
         }
