@@ -15,10 +15,10 @@ public class EnemyController : MonoBehaviour {
   float attackTime = 0.0f;
   bool alive = true;
   int characterLayerHash;
-	GameObject target;
 
   // Drivers
     Collider2D attack;
+    GameObject target;
 
   // Dependencies
     Animator animator;
@@ -50,9 +50,17 @@ public class EnemyController : MonoBehaviour {
     }
 
     void HorizontalMove() {
+      // *** SeekForTarget *** //
+        // (I) Seek for targets within 'R' radius around position
+        // (II) When detected many , choose the closer one 
+        // (III) Move to target
+
+
+
       deltaX = target == null ? 0 : target.transform.position.x - transform.position.x;
       float direction = deltaX < 0.0f ? -1.0f : 1.0f;
 
+      // Flip Character
       float oldXScale = rb2d.transform.localScale.x;
       float oldYScale = rb2d.transform.localScale.y;
       transform.localScale = new Vector2(
@@ -61,11 +69,13 @@ public class EnemyController : MonoBehaviour {
       );
       currentFlip = Mathf.Sign(transform.localScale.x);
 
+      // Move by velocity
       rb2d.velocity = new Vector2(deltaX * actualSpeed, rb2d.velocity.y);
     }
 
     void TryAttack() {
       actualSpeed = Mathf.Abs(deltaX) < 1.0f ? 0.0f : movementSpeed;
+
       attack = Physics2D.OverlapBox(
         hitboxTransform.position,
         new Vector2(1.0f, 1.0f),
@@ -90,6 +100,7 @@ public class EnemyController : MonoBehaviour {
     }
 
     void CheckAlive() {
+      // Please see PlayerController's CheckAlive() for more info
       if(HP <= 0) {
         alive = false;
         actualSpeed = 0.0f;

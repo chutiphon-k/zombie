@@ -9,6 +9,7 @@ public class PlayerController : MonoBehaviour {
   public Transform groundCheckerTransform;
 
   float currentFlip = 1;
+  float cameraZOffset;
   bool grounded = true;
   bool alive = true;
   int groundLayerHash;
@@ -26,12 +27,15 @@ public class PlayerController : MonoBehaviour {
   // Dependencies
     Animator animator;
     Rigidbody2D rb2d;
+    GameObject mycamera;
 
   void Start() {
     animator = GetComponent<Animator>();
     rb2d = GetComponent<Rigidbody2D>();
+    mycamera = GameObject.FindWithTag("MainCamera");
 
     groundLayerHash = groundLayer.GetHashCode();
+    cameraZOffset = mycamera.transform.position.z - transform.position.z;
   }
 
   void Update() {
@@ -43,6 +47,10 @@ public class PlayerController : MonoBehaviour {
   void FixedUpdate() {
     HorizontalMove();
     VerticalMove();
+  }
+
+  void LateUpdate() {
+    Staring();  
   }
 
   // Functions
@@ -62,6 +70,7 @@ public class PlayerController : MonoBehaviour {
     }
 
     void HorizontalMove() {
+      // Flip character
       transform.localScale = new Vector2(
         horizontal == 0.0f ? currentFlip : (
           horizontal == -1.0f ? -1.0f : 1.0f
@@ -69,18 +78,22 @@ public class PlayerController : MonoBehaviour {
       );
       currentFlip = Mathf.Sign(transform.localScale.x);
 
+      // Change movement velocity
       rb2d.velocity = new Vector2(
         horizontal * (run ? 1.5f : 1.0f) * movementSpeed , rb2d.velocity.y
       );
     }
 
     void VerticalMove() {
+      // Check whether player is on ground
       grounded = Physics2D.OverlapBox(
         groundCheckerTransform.position,
         new Vector2(1.0f, 0.1f),
         0.0f,
         groundLayerHash
       );
+
+      // Add jumping forces
       rb2d.AddForce(
          grounded && jump ? new Vector2(0.0f, jumpForces) : Vector2.zero
          , ForceMode2D.Impulse
@@ -93,7 +106,9 @@ public class PlayerController : MonoBehaviour {
     }
 
     void CheckAlive() { 
+      // Determines whether alive state is true or false to run this function
       if(HP <= 0) {
+        // Because when player died, dead animation must be triggered only once
         alive = false;
         movementSpeed = 0.0f;
         animator.SetTrigger("Dead");
@@ -101,6 +116,10 @@ public class PlayerController : MonoBehaviour {
       }
       else
         alive = true;
+    }
+
+    void Staring() {
+      mycamera.transform.position = transform.position + new Vector3( 0.0f, 0.0f, cameraZOffset );
     }
 
 }
