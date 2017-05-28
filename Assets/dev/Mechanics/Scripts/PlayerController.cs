@@ -2,6 +2,7 @@
 
 public class PlayerController : MonoBehaviour {
 
+  public int HP;
   public float movementSpeed;
   public float jumpForces;
   public LayerMask groundLayer;

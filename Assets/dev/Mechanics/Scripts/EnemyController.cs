@@ -2,6 +2,7 @@
 
 public class EnemyController : MonoBehaviour {
 
+  public int HP;
   public float movementSpeed;
   public float attackSpeed;
   public string targetTag;
@@ -12,11 +13,12 @@ public class EnemyController : MonoBehaviour {
   float actualSpeed;
   float deltaX = 0.0f;
   float attackTime = 0.0f;
+  bool alive = true;
   int characterLayerHash;
 	GameObject target;
 
   // Drivers
-    bool attack;
+    Collider2D attack;
 
   // Dependencies
     Animator animator;
@@ -32,6 +34,7 @@ public class EnemyController : MonoBehaviour {
 
   void Update() {
     AnimatorSetVariables();
+    if(alive) CheckAlive();
   }
 
 	void FixedUpdate() {
@@ -43,7 +46,7 @@ public class EnemyController : MonoBehaviour {
 		// TODO: หาวิธีการ move และการ attack เพื่อที่จะเอาไปใส่ใน animation ได้
     void AnimatorSetVariables() {
       animator.SetBool("isMoving", Mathf.Abs(rb2d.velocity.x) > 0);
-      animator.SetBool("isAttacking", attack);
+      animator.SetBool("isAttacking", attack != null);
     }
 
     void HorizontalMove() {
@@ -63,18 +66,37 @@ public class EnemyController : MonoBehaviour {
 
     void TryAttack() {
       actualSpeed = Mathf.Abs(deltaX) < 1.0f ? 0.0f : movementSpeed;
-      if(attack = Physics2D.OverlapBox(
+      attack = Physics2D.OverlapBox(
         hitboxTransform.position,
-        new Vector2(1.0f, 2.0f),
+        new Vector2(1.0f, 1.0f),
         0.0f,
-        characterLayerHash 
-      )) {
+        characterLayerHash
+      );
+      if(attack != null) {
         if(Time.fixedTime > attackTime) {
           // TODO: Implement real hit
-          Debug.Log("Hit"); 
+          Collider2D hit = attack;
+          Debug.Log("Hit");
+
           attackTime = Time.fixedTime + (1.0f / attackSpeed);
         }
       }
+    }
+
+    public void StatusUpdate() {
+      HP -= 1;
+      // TODO: set hurt animation trigger
+    }
+
+    void CheckAlive() {
+      if(HP <= 0) {
+        alive = false;
+        actualSpeed = 0.0f;
+        animator.SetTrigger("Dead");
+        Destroy(gameObject, 0.667f);
+      }
+      else
+        alive = true;
     }
 
 }
