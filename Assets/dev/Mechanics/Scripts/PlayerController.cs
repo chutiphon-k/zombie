@@ -10,6 +10,7 @@ public class PlayerController : MonoBehaviour {
 
   float currentFlip = 1;
   bool grounded = true;
+  bool alive = true;
   int groundLayerHash;
 
   // Communicators
@@ -36,6 +37,7 @@ public class PlayerController : MonoBehaviour {
   void Update() {
     ManageInputs();
     AnimatorSetVariables();
+    if(alive) CheckAlive();
   }
 
   void FixedUpdate() {
@@ -83,6 +85,22 @@ public class PlayerController : MonoBehaviour {
          grounded && jump ? new Vector2(0.0f, jumpForces) : Vector2.zero
          , ForceMode2D.Impulse
       );
+    }
+    
+    public void StatusUpdate() {
+      HP -= 1;
+      // TODO: set hurt animation trigger
+    }
+
+    void CheckAlive() { 
+      if(HP <= 0) {
+        alive = false;
+        movementSpeed = 0.0f;
+        animator.SetTrigger("Dead");
+        Destroy(gameObject, 2.0f);
+      }
+      else
+        alive = true;
     }
 
 }

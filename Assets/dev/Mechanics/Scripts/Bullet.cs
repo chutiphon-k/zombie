@@ -9,7 +9,7 @@ public class Bullet : MonoBehaviour {
   }
   
   void OnCollisionEnter2D(Collision2D other) {
-    if(other.gameObject.tag == "Enemy") {
+    if(other.gameObject.tag == "Enemy" || other.gameObject.tag == "Player") {
       other.gameObject.SendMessage("StatusUpdate");     
       Destroy(gameObject);
     }
