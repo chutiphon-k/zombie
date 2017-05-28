@@ -59,12 +59,12 @@ public class PlayerController : MonoBehaviour {
     }
 
     void HorizontalMove() {
-      rb2d.transform.localScale = new Vector2(
+      transform.localScale = new Vector2(
         horizontal == 0.0f ? currentFlip : (
           horizontal == -1.0f ? -1.0f : 1.0f
         ), 1
       );
-      currentFlip = Mathf.Sign(rb2d.transform.localScale.x);
+      currentFlip = Mathf.Sign(transform.localScale.x);
 
       rb2d.velocity = new Vector2(
         horizontal * (run ? 1.5f : 1.0f) * movementSpeed , rb2d.velocity.y
