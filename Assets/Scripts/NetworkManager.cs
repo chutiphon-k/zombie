@@ -202,7 +202,13 @@ public class NetworkManager : MonoBehaviour {
 		socket.Emit("health", new JSONObject(JsonUtility.ToJson(healthChangeJSON)));
 	}
 
-
+	public void CommandDead(string name){
+		// print("health change cmd");
+		// HealthChangeJSON healthChangeJSON = new HealthChangeJSON(playerTo.name, healthChange, playerFrom.name, isEnemy);
+		UserJSON userJSON = new UserJSON();
+		userJSON.name = name;
+		socket.Emit("dead", new JSONObject(JsonUtility.ToJson(userJSON)));
+	}
 
 	[Serializable]
 	public class PointJSON {
